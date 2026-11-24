@@ -50,8 +50,29 @@ def new_experiment_form(request: Request):
     )
 
 
+def _experiment_form_values(**fields) -> dict:
+    return {k: v.strip() for k, v in fields.items()}
+
+
+DUPLICATE_TITLE_ERROR = (
+    "An experiment with this title already exists on this date. "
+    "Use a different title (e.g. add \"repeat 2\") or a different date."
+)
+
+
+def _form_error(request: Request, values: dict, experiment_id: int | None = None):
+    """Re-render the experiment form with the entered values and an error banner."""
+    experiment = dict(values, id=experiment_id) if experiment_id is not None else None
+    return templates.TemplateResponse(
+        "experiment_form.html",
+        {"request": request, "experiment": experiment, "values": values, "error": DUPLICATE_TITLE_ERROR},
+        status_code=400,
+    )
+
+
 @router.post("/experiments")
 def create_experiment(
+    request: Request,
     slug: str = Form(...),
     title: str = Form(""),
     experiment_group: str = Form(""),
@@ -61,14 +82,21 @@ def create_experiment(
     incubation_at: str = Form(""),
     conn: sqlite3.Connection = Depends(get_db),
 ):
-    cur = conn.execute(
-        """INSERT INTO experiments
-           (slug, title, experiment_group, repetition, experiment_date,
-            injection_stage, incubation_at, source)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 'app_created')""",
-        (slug.strip(), title.strip(), experiment_group.strip(), repetition.strip(),
-         experiment_date.strip() or None, injection_stage.strip(), incubation_at.strip()),
+    v = _experiment_form_values(
+        slug=slug, title=title, experiment_group=experiment_group, repetition=repetition,
+        experiment_date=experiment_date, injection_stage=injection_stage, incubation_at=incubation_at,
     )
+    try:
+        cur = conn.execute(
+            """INSERT INTO experiments
+               (slug, title, experiment_group, repetition, experiment_date,
+                injection_stage, incubation_at, source)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'app_created')""",
+            (v["slug"], v["title"], v["experiment_group"], v["repetition"],
+             v["experiment_date"] or None, v["injection_stage"], v["incubation_at"]),
+        )
+    except sqlite3.IntegrityError:
+        return _form_error(request, v)
     conn.commit()
     return RedirectResponse(url=f"/experiments/{cur.lastrowid}", status_code=303)
 
@@ -114,6 +142,7 @@ def edit_experiment_form(request: Request, experiment_id: int, conn: sqlite3.Con
 
 @router.post("/experiments/{experiment_id}/edit")
 def update_experiment(
+    request: Request,
     experiment_id: int,
     slug: str = Form(...),
     title: str = Form(""),
@@ -124,13 +153,20 @@ def update_experiment(
     incubation_at: str = Form(""),
     conn: sqlite3.Connection = Depends(get_db),
 ):
-    conn.execute(
-        """UPDATE experiments SET slug=?, title=?, experiment_group=?, repetition=?,
-           experiment_date=?, injection_stage=?, incubation_at=?, updated_at=datetime('now')
-           WHERE id=?""",
-        (slug.strip(), title.strip(), experiment_group.strip(), repetition.strip(),
-         experiment_date.strip() or None, injection_stage.strip(), incubation_at.strip(), experiment_id),
+    v = _experiment_form_values(
+        slug=slug, title=title, experiment_group=experiment_group, repetition=repetition,
+        experiment_date=experiment_date, injection_stage=injection_stage, incubation_at=incubation_at,
     )
+    try:
+        conn.execute(
+            """UPDATE experiments SET slug=?, title=?, experiment_group=?, repetition=?,
+               experiment_date=?, injection_stage=?, incubation_at=?, updated_at=datetime('now')
+               WHERE id=?""",
+            (v["slug"], v["title"], v["experiment_group"], v["repetition"],
+             v["experiment_date"] or None, v["injection_stage"], v["incubation_at"], experiment_id),
+        )
+    except sqlite3.IntegrityError:
+        return _form_error(request, v, experiment_id)
     conn.commit()
     return RedirectResponse(url=f"/experiments/{experiment_id}", status_code=303)
 
@@ -187,14 +223,26 @@ def export_markdown(experiment_id: int, conn: sqlite3.Connection = Depends(get_d
         ).fetchall()
         mixes_with_lines.append((mix, lines))
     markdown = calc.render_experiment_markdown(experiment, mixes_with_lines)
-    slug = experiment["slug"]
-    date_str = (experiment["experiment_date"] or "").replace("-", "")
-    if date_str and not slug.startswith(date_str):
-        filename = f"{date_str}_{slug}.md"
-    else:
-        filename = f"{slug}.md"
     return Response(
         content=markdown,
         media_type="text/markdown",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": _content_disposition(export_filename(experiment))},
     )
+
+
+def export_filename(experiment) -> str:
+    """'<YYYYMMDD> <title>.md', e.g. '20261006 heatshock timelapse test.md'.
+    Titles that already start with the date (historical ones) aren't prefixed again."""
+    title = experiment["slug"].strip()
+    date_str = (experiment["experiment_date"] or "").replace("-", "")
+    name = f"{date_str} {title}" if date_str and not title.startswith(date_str) else title
+    for ch in '/\\"':
+        name = name.replace(ch, "-")
+    return f"{name}.md"
+
+
+def _content_disposition(filename: str) -> str:
+    """HTTP headers must be Latin-1, so non-ASCII names (e.g. an en dash) go in the
+    RFC 5987 filename* parameter, with an ASCII-only fallback for old clients."""
+    ascii_fallback = filename.encode("ascii", "replace").decode("ascii").replace("?", "_")
+    return f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{quote(filename)}"

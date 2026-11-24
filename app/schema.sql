@@ -18,8 +18,8 @@ CREATE INDEX IF NOT EXISTS idx_plasmids_needs_review ON plasmids(needs_review);
 -- experiments: one lab-book entry
 CREATE TABLE IF NOT EXISTS experiments (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
-    slug              TEXT NOT NULL UNIQUE,
-    title             TEXT,
+    slug              TEXT NOT NULL,  -- shown as "Title" in the UI
+    title             TEXT,           -- shown as "Description" in the UI
     experiment_group  TEXT,
     repetition        TEXT,
     tags              TEXT NOT NULL DEFAULT '#Labbook',
@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS experiments (
     migration_note    TEXT,
     closed_at         TEXT,
     created_at        TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
+    updated_at        TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(slug, experiment_date)   -- same title is fine on different dates
 );
 
 -- mixes: one lettered sub-experiment (e.g. jan22a)

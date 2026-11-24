@@ -30,7 +30,9 @@ No authentication is included; the app binds to `0.0.0.0:8000` by design
 ## Using it
 
 - **Experiments** - a "lab-book entry" for one day's injections (was one
-  Obsidian `.md` file).
+  Obsidian `.md` file), with a **Title** (e.g. `heatshock timelapse test`), a
+  date and an optional **Description** (the aim of the experiment). The same
+  title can be reused on a different date.
 - **Mixes** - a lettered sub-experiment (e.g. `jan22a`), belonging to an
   experiment.
 - **Lines** - either a plasmid/RNA construct (enter the construct ID + amount
@@ -57,6 +59,7 @@ No authentication is included; the app binds to `0.0.0.0:8000` by design
   always reflected correctly.
 - **Export as Markdown** on an experiment page reproduces the original
   `write_experiment()` file format, for pasting into Obsidian or elsewhere.
+  The file is named `<date> <title>.md`, e.g. `20261006 heatshock timelapse test.md`.
 - **Flagged plasmids** (nav link) lists every plasmid or recipe line migrated
   with an unresolved data-quality note (e.g. a garbled ID, a name mismatch) -
   review and clear them at your own pace; nothing is silently altered.

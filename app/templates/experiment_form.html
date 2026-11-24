@@ -1,27 +1,30 @@
 {% extends "base.html" %}
 {% block title %}{{ "Edit" if experiment else "New" }} experiment{% endblock %}
 {% block content %}
+{% set v = values or experiment or {} %}
 <h2>{{ "Edit" if experiment else "New" }} experiment</h2>
+{% if error %}<div class="flag">{{ error }}</div>{% endif %}
 <form method="post" action="{{ '/experiments/%d/edit' % experiment.id if experiment else '/experiments' }}">
-  <p><label>Slug / filename<br>
-    <input type="text" name="slug" required style="width:100%"
-           value="{{ experiment.slug if experiment else '' }}"></label></p>
-  <p><label>Title / aim of experiment<br>
+  <p><label>Title<br>
+    <input type="text" name="slug" required style="width:100%" placeholder="e.g. heatshock timelapse test"
+           value="{{ v.slug or '' }}"></label></p>
+  <p class="muted">The Markdown export is named "&lt;date&gt; &lt;title&gt;.md", e.g. "20261006 heatshock timelapse test.md".</p>
+  <p><label>Description / aim of experiment<br>
     <input type="text" name="title" style="width:100%"
-           value="{{ experiment.title if experiment else '' }}"></label></p>
+           value="{{ v.title or '' }}"></label></p>
   <p><label>Experiment date<br>
     <input type="date" name="experiment_date"
-           value="{{ experiment.experiment_date if experiment else default_experiment_date }}"></label></p>
+           value="{{ v.experiment_date if v else default_experiment_date }}"></label></p>
   <p><label>Experiment group<br>
-    <input type="text" name="experiment_group" value="{{ experiment.experiment_group if experiment else '' }}"></label></p>
+    <input type="text" name="experiment_group" value="{{ v.experiment_group or '' }}"></label></p>
   <p><label>Repetition<br>
-    <input type="text" name="repetition" value="{{ experiment.repetition if experiment else '' }}"></label></p>
+    <input type="text" name="repetition" value="{{ v.repetition or '' }}"></label></p>
   <p><label>Injection stage<br>
     <input type="text" name="injection_stage"
-           value="{{ experiment.injection_stage if experiment else default_injection_stage }}"></label></p>
+           value="{{ v.injection_stage if v else default_injection_stage }}"></label></p>
   <p><label>Incubation at<br>
     <input type="text" name="incubation_at"
-           value="{{ experiment.incubation_at if experiment else default_incubation_at }}"></label></p>
+           value="{{ v.incubation_at if v else default_incubation_at }}"></label></p>
   <p><button type="submit">Save</button></p>
 </form>
 {% endblock %}

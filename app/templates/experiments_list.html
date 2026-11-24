@@ -2,13 +2,13 @@
 {% block title %}Experiments{% endblock %}
 {% block content %}
 <form class="row" method="get" action="/experiments">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search by date, title, construct ID or name...">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by title, description, construct ID or name...">
   <button type="submit">Search</button>
   {% if q %}<a href="/experiments">Clear</a>{% endif %}
 </form>
 
 <table>
-  <tr><th>Date</th><th>Slug / Filename</th><th>Title</th><th>Source</th><th></th><th></th></tr>
+  <tr><th>Date</th><th>Title</th><th>Description</th><th>Source</th><th></th><th></th></tr>
   {% for e in experiments %}
   <tr>
     <td>{{ e.experiment_date or "—" }}</td>
