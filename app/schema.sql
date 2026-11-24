@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS mixes (
     label             TEXT NOT NULL,
     mix_volume        REAL NOT NULL DEFAULT 3,
     phr_enabled       INTEGER NOT NULL DEFAULT 1,
+    phr_volume        REAL,  -- NULL = default of 10% of mix_volume
     ordering          INTEGER NOT NULL DEFAULT 0,
     created_at        TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at        TEXT NOT NULL DEFAULT (datetime('now'))

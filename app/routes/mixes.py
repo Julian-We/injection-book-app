@@ -164,12 +164,18 @@ def update_mix_settings(
     mix_id: int,
     mix_volume: float = Form(3),
     phr_enabled: bool = Form(False),
+    phr_volume: str = Form(""),
     conn: sqlite3.Connection = Depends(get_db),
 ):
     experiment_id = _experiment_id_for_mix(conn, mix_id)
+    try:
+        phr_vol = float(phr_volume) if phr_volume.strip() else None  # empty = 10% default
+    except ValueError:
+        phr_vol = None
     conn.execute(
-        "UPDATE mixes SET mix_volume = ?, phr_enabled = ?, updated_at = datetime('now') WHERE id = ?",
-        (mix_volume, int(phr_enabled), mix_id),
+        """UPDATE mixes SET mix_volume = ?, phr_enabled = ?, phr_volume = ?,
+           updated_at = datetime('now') WHERE id = ?""",
+        (mix_volume, int(phr_enabled), phr_vol, mix_id),
     )
     conn.commit()
     return RedirectResponse(url=f"/experiments/{experiment_id}", status_code=303)

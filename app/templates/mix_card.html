@@ -1,14 +1,14 @@
 {% from "_line_forms.html" import edit_button, edit_row, add_line_forms %}
 <div class="card">
   <h2>{{ mix.label }}
-    <span class="muted">(mix volume {{ mix.mix_volume }} µL{% if mix.phr_enabled %}, PhR on{% endif %})</span>
+    <span class="muted">(mix volume {{ mix.mix_volume }} µL{% if mix.phr_enabled %}, PhR {{ "%g"|format((mix.phr_volume if mix.phr_volume is not none else mix.mix_volume * 0.1)|round(3)) }} µL{% endif %})</span>
   </h2>
 
   <table>
     <tr><th>Name</th><th>Construct ID</th><th>Conc [ng/µL]</th><th>Volume [µL]</th><th>Amount [pg]</th><th></th></tr>
     {% for r in rows %}
-    <tr{% if r.needs_review %} class="flag"{% endif %}>
-      <td>{{ r.label }}{% if r.needs_review %} <span class="pill" title="{{ r.review_note }}">needs review</span>{% endif %}</td>
+    <tr{% if r.needs_review or (r.kind == "hepes" and r.volume_ul < 0) %} class="flag"{% endif %}>
+      <td>{{ r.label }}{% if r.kind == "hepes" and r.volume_ul < 0 %} <span class="pill">negative - lines exceed mix volume</span>{% endif %}{% if r.needs_review %} <span class="pill" title="{{ r.review_note }}">needs review</span>{% endif %}</td>
       <td>{{ r.construct_id or "-" }}</td>
       <td>{{ "%.2f"|format(r.conc_ng_per_ul) if r.conc_ng_per_ul is not none else "-" }}</td>
       <td>{{ r.volume_ul }}</td>
@@ -44,6 +44,11 @@
     <form class="row" method="post" action="/mixes/{{ mix.id }}/settings">
       <label>Mix volume [µL] <input type="number" step="any" name="mix_volume" value="{{ mix.mix_volume }}"></label>
       <label><input type="checkbox" name="phr_enabled" value="true" {% if mix.phr_enabled %}checked{% endif %}> Include PhR</label>
+      <label>PhR volume [µL]
+        <input type="number" step="any" min="0" name="phr_volume"
+               value="{{ mix.phr_volume if mix.phr_volume is not none else '' }}"
+               placeholder="{{ '%g'|format((mix.mix_volume * 0.1)|round(3)) }} (10%)">
+      </label>
       <button type="submit">Save</button>
     </form>
     <form method="post" action="/mixes/{{ mix.id }}/delete" onsubmit="return confirm('Delete this whole mix?')">

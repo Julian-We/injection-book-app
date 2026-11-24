@@ -29,6 +29,7 @@ def ensure_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA_PATH.read_text())
     conn.commit()
     _migrate_add_column(conn, "experiments", "closed_at", "TEXT")
+    _migrate_add_column(conn, "mixes", "phr_volume", "REAL")
 
 
 def _migrate_add_column(conn: sqlite3.Connection, table: str, column: str, coltype: str) -> None:

@@ -137,3 +137,13 @@ td.actions { white-space: nowrap; text-align: right; }
 button.icon { padding: 0.2rem 0.55rem; }
 tr.edit-row td { background: var(--bg-alt); }
 tr.edit-row form.row { margin: 0; }
+
+.notice {
+  background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0.6rem 0.85rem; margin: 0.5rem 0; font-size: 0.9rem;
+}
+details.card > summary { font-weight: 600; color: var(--fg); }
+.pager { display: flex; align-items: center; gap: 0.75rem; }
+a.button.secondary-link {
+  background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--fg); border: 1px solid var(--border);
+}

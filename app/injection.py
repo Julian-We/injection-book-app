@@ -22,7 +22,9 @@ def calculate_injection(inject_amount, stock_conc, inject_volume=2, mix_volume=3
     return final_vol, stock_conc/dil_fac, inject_amount
 
 
-def calc_injectionmix(dic, mix_vol=3, phr=True):
+def calc_injectionmix(dic, mix_vol=3, phr=True, phr_vol=None):
+    if phr_vol is None:
+        phr_vol = mix_vol * 0.1  # historical default: 10% of the mix
     total_rna_vol = 0
     output = ['|Name|Construct Number |Volume [µL]| Amount in pg |\n']
     for k, v in dic.items():
@@ -33,8 +35,8 @@ def calc_injectionmix(dic, mix_vol=3, phr=True):
             output.append(f'|{k} ({v[1]}'+r' $\frac{ng}{µL}$)| '+f' {round(v[0], 3)}| {v[2]} |\n')
         total_rna_vol += v[0]
     if phr:
-        total_rna_vol += mix_vol * 0.1
-        output.append(f'|PhR| - |     \t {round(mix_vol * 0.1, 3)}| - |\n')
+        total_rna_vol += phr_vol
+        output.append(f'|PhR| - |     \t {round(phr_vol, 3)}| - |\n')
     output.append(f'|HEPES| - |    \t {round(mix_vol - total_rna_vol, 3)}| - |\n')
     # for op in output:
     #     print(op, end='')

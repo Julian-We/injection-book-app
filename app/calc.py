@@ -54,6 +54,14 @@ def html_display_name(row: sqlite3.Row) -> str:
     return "(unnamed reagent)"
 
 
+def phr_volume(mix) -> float:
+    """PhR volume [µL] for a mix: its own setting, or the historical 10% default."""
+    keys = mix.keys() if hasattr(mix, "keys") else ()
+    if "phr_volume" in keys and mix["phr_volume"] is not None:
+        return float(mix["phr_volume"])
+    return mix["mix_volume"] * 0.1
+
+
 def build_dict_for_mix(lines: list[sqlite3.Row]) -> dict:
     """Rebuild the {label: value} dict shape calc_injectionmix() expects."""
     dic = {}
@@ -81,7 +89,7 @@ def render_mix_table(mix: sqlite3.Row, lines: list[sqlite3.Row]) -> str:
     """Return the markdown table for a mix, computed live (matches calc_injectionmix)."""
     dic = build_dict_for_mix(lines)
     return injection.calc_injectionmix(
-        dic, mix_vol=mix["mix_volume"], phr=bool(mix["phr_enabled"])
+        dic, mix_vol=mix["mix_volume"], phr=bool(mix["phr_enabled"]), phr_vol=phr_volume(mix)
     )
 
 
@@ -123,7 +131,7 @@ def render_mix_rows(mix: sqlite3.Row, lines: list[sqlite3.Row]) -> list[Rendered
         )
     mix_vol = mix["mix_volume"]
     if mix["phr_enabled"]:
-        phr_vol = round(mix_vol * 0.1, 3)
+        phr_vol = round(phr_volume(mix), 3)
         total_vol += phr_vol
         rendered.append(
             RenderedLine(

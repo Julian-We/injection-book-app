@@ -44,6 +44,11 @@ No authentication is included; the app binds to `0.0.0.0:8000` by design
   an existing mix, and its lines are copied in. The copies are ordinary mix
   lines, so editing them never changes the preset (and editing/deleting the
   preset never changes existing mixes).
+- **Constructs** (nav link) - browse, search, add and edit the construct
+  database. A construct can only be deleted if no mix or preset uses it.
+  Renaming a construct also changes how it shows up in past experiments.
+- PhR defaults to 10% of the mix volume; set a different PhR volume [µL] per mix
+  under "Mix settings" (leave it empty to go back to the 10% default).
 - PhR and HEPES top-up rows are always computed live from the mix's other
   lines - they are never stored, so editing a mix's volume/PhR setting is
   always reflected correctly.

@@ -45,3 +45,15 @@ def test_calc_injectionmix_hepes_tops_up_to_mix_volume():
     table = injection.calc_injectionmix({"X | 1": (1.0, 500, 100)}, mix_vol=3, phr=True)
     hepes_line = [l for l in table.splitlines() if l.startswith("|HEPES")][0]
     assert "1.7" in hepes_line
+
+
+def test_calc_injectionmix_custom_phr_volume():
+    table = injection.calc_injectionmix({"X | 1": (1.0, 500, 100)}, mix_vol=3, phr=True, phr_vol=0.5)
+    assert "|PhR| - |     \t 0.5|" in table
+    assert "|HEPES| - |    \t 1.5|" in table
+
+
+def test_calc_injectionmix_default_phr_is_ten_percent():
+    table = injection.calc_injectionmix({"X | 1": (1.0, 500, 100)}, mix_vol=3, phr=True)
+    assert "|PhR| - |     \t 0.3|" in table
+    assert "|HEPES| - |    \t 1.7|" in table
