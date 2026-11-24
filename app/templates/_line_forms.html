@@ -1,0 +1,52 @@
+{# Shared forms for mix lines and preset lines. #}
+
+{% macro edit_button() -%}
+<button type="button" class="secondary icon" title="Edit this line"
+        onclick="this.closest('tr').nextElementSibling.hidden = !this.closest('tr').nextElementSibling.hidden">✎</button>
+{%- endmacro %}
+
+{% macro edit_row(line, label, action, colspan) -%}
+<tr class="edit-row" hidden>
+  <td colspan="{{ colspan }}">
+    <form class="row" method="post" action="{{ action }}">
+      {% if line.kind == "plasmid" %}
+      <label>Amount [pg] <input type="number" step="any" name="inject_amount" value="{{ line.inject_amount if line.inject_amount is not none else '' }}" required></label>
+      <label>Stock conc [ng/µL] <input type="number" step="any" name="stock_conc" value="{{ line.stock_conc if line.stock_conc is not none else '' }}" required></label>
+      <label>Inject vol [nL] <input type="number" step="any" name="inject_volume" value="{{ line.inject_volume or 2 }}"></label>
+      <label>Mix vol [µL] <input type="number" step="any" name="mix_volume_at_calc" value="{{ line.mix_volume_at_calc or 3 }}"></label>
+      {% else %}
+      <label>Label <input type="text" name="display_text" value="{{ label }}" required></label>
+      <label>Volume [µL] <input type="number" step="any" name="manual_volume" value="{{ line.manual_volume if line.manual_volume is not none else '' }}" required></label>
+      {% endif %}
+      <button type="submit">Save</button>
+    </form>
+  </td>
+</tr>
+{%- endmacro %}
+
+{% macro add_line_forms(action) -%}
+<h3>Add construct (plasmid) line</h3>
+<form class="row" method="post" action="{{ action }}">
+  <input type="hidden" name="kind" value="plasmid">
+  <label>Construct ID <input type="text" name="construct_id" required placeholder="e.g. F126"></label>
+  <label>Amount [pg] <input type="number" step="any" name="inject_amount" required></label>
+  <label>Stock conc [ng/µL] <input type="number" step="any" name="stock_conc" value="500" required></label>
+  <details>
+    <summary>Advanced (inject/mix volume)</summary>
+    <label>Inject vol [nL] <input type="number" step="any" name="inject_volume" value="2"></label>
+    <label>Mix vol [µL] <input type="number" step="any" name="mix_volume_at_calc" value="3"></label>
+  </details>
+  <button type="submit">Add</button>
+</form>
+<p class="muted">The construct name is looked up automatically from the plasmid database by ID (case doesn't matter).</p>
+
+<details>
+  <summary>Add morpholino / reagent line (manual volume)</summary>
+  <form class="row" method="post" action="{{ action }}">
+    <input type="hidden" name="kind" value="reagent">
+    <label>Label <input type="text" name="display_text" required placeholder="e.g. Tdrd7a MO #27"></label>
+    <label>Volume [µL] <input type="number" step="any" name="manual_volume" required></label>
+    <button type="submit">Add</button>
+  </form>
+</details>
+{%- endmacro %}

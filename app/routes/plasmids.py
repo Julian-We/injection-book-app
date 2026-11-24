@@ -9,13 +9,34 @@ from ..templating import templates
 router = APIRouter()
 
 
+def find_plasmid(conn: sqlite3.Connection, construct_id: str):
+    """Look up a plasmid by construct ID, ignoring case and surrounding whitespace."""
+    return conn.execute(
+        "SELECT * FROM plasmids WHERE construct_id = ? COLLATE NOCASE",
+        (construct_id.strip(),),
+    ).fetchone()
+
+
+def get_or_create_plasmid(
+    conn: sqlite3.Connection, construct_id: str, name: str, generated_by: str = "", enzyme: str = ""
+) -> int:
+    """Return the id of the plasmid with this construct ID, adding it (user_added) if missing."""
+    existing = find_plasmid(conn, construct_id)
+    if existing is not None:
+        return existing["id"]
+    construct_id = construct_id.strip()
+    cur = conn.execute(
+        """INSERT INTO plasmids (construct_id, raw_id_original, name, generated_by, enzyme, enzyme_raw, source)
+           VALUES (?, ?, ?, ?, ?, ?, 'user_added')""",
+        (construct_id, construct_id, name.strip(), generated_by.strip(), enzyme.strip(), enzyme.strip()),
+    )
+    return cur.lastrowid
+
+
 @router.get("/api/plasmids/lookup")
 def lookup_plasmid(construct_id: str, conn: sqlite3.Connection = Depends(get_db)):
     construct_id = construct_id.strip()
-    row = conn.execute(
-        "SELECT construct_id, name, generated_by, enzyme, needs_review FROM plasmids WHERE construct_id = ?",
-        (construct_id,),
-    ).fetchone()
+    row = find_plasmid(conn, construct_id)
     if row is None:
         return JSONResponse({"found": False, "construct_id": construct_id})
     return JSONResponse({
@@ -39,16 +60,8 @@ def add_plasmid(
 ):
     construct_id = construct_id.strip()
     name = name.strip()
-    existing = conn.execute(
-        "SELECT id FROM plasmids WHERE construct_id = ?", (construct_id,)
-    ).fetchone()
-    if existing is None:
-        conn.execute(
-            """INSERT INTO plasmids (construct_id, raw_id_original, name, generated_by, enzyme, enzyme_raw, source)
-               VALUES (?, ?, ?, ?, ?, ?, 'user_added')""",
-            (construct_id, construct_id, name, generated_by.strip(), enzyme.strip(), enzyme.strip()),
-        )
-        conn.commit()
+    get_or_create_plasmid(conn, construct_id, name, generated_by, enzyme)
+    conn.commit()
     return JSONResponse({"ok": True, "construct_id": construct_id, "name": name})
 
 

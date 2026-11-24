@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_line_forms.html" import edit_button, edit_row, add_line_forms %}
+{% block title %}{{ preset.name }}{% endblock %}
+{% block content %}
+<p><a href="/presets">&larr; all presets</a></p>
+<h2>{{ preset.name }}</h2>
+{% if preset.description %}<p>{{ preset.description }}</p>{% endif %}
+{% if error %}<div class="flag">{{ error }}</div>{% endif %}
+
+<div class="card">
+  <table>
+    <tr><th>Name</th><th>Construct ID</th><th>Stock conc [ng/µL]</th><th>Amount [pg]</th><th>Volume [µL]</th><th></th></tr>
+    {% for l in lines %}
+    {% set label = l.display_name_override or (l.plasmid_name if l.kind == "plasmid" else "") or l.plasmid_construct_id or "(unnamed)" %}
+    <tr>
+      <td>{{ label }}</td>
+      <td>{{ l.plasmid_construct_id if l.kind == "plasmid" else "-" }}</td>
+      <td>{{ l.stock_conc if l.kind == "plasmid" else "-" }}</td>
+      <td>{{ l.inject_amount if l.kind == "plasmid" else "-" }}</td>
+      <td>{{ l.manual_volume if l.kind == "reagent" else "calculated" }}</td>
+      <td class="actions">
+        {{ edit_button() }}
+        <form class="inline" method="post" action="/preset_lines/{{ l.id }}/delete">
+          <button type="submit" class="danger icon" title="Remove this line" onclick="return confirm('Remove this line from the preset?')">×</button>
+        </form>
+      </td>
+    </tr>
+    {{ edit_row(l, l.display_name_override or "", "/preset_lines/" ~ l.id ~ "/edit", 6) }}
+    {% else %}
+    <tr><td colspan="6" class="muted">This preset has no lines yet. Add some below.</td></tr>
+    {% endfor %}
+  </table>
+
+  {{ add_line_forms("/presets/" ~ preset.id ~ "/lines") }}
+</div>
+
+<details>
+  <summary>Rename / delete preset</summary>
+  <form class="row" method="post" action="/presets/{{ preset.id }}/edit">
+    <label>Name <input type="text" name="name" value="{{ preset.name }}" required></label>
+    <label>Description <input type="text" name="description" value="{{ preset.description or '' }}"></label>
+    <button type="submit">Save</button>
+  </form>
+  <form method="post" action="/presets/{{ preset.id }}/delete"
+        onsubmit="return confirm('Delete this preset? Mixes that already used it are not affected.')">
+    <button type="submit" class="danger">Delete preset</button>
+  </form>
+</details>
+{% endblock %}

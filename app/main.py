@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import db
-from .routes import experiments, mixes, plasmids
+from .routes import experiments, mixes, plasmids, presets
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from migrations import migrate_plasmids, migrate_notebook  # noqa: E402
@@ -30,6 +30,7 @@ app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")
 app.include_router(experiments.router)
 app.include_router(mixes.router)
 app.include_router(plasmids.router)
+app.include_router(presets.router)
 
 
 @app.get("/")

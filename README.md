@@ -37,6 +37,13 @@ No authentication is included; the app binds to `0.0.0.0:8000` by design
   [pg] + stock conc [ng/µL] - the name is looked up automatically; if the ID
   isn't in the database yet you'll be prompted to add it) or a
   morpholino/reagent (free-text label + manual volume in µL).
+  Construct IDs are matched case-insensitively (`f126` finds `F126`). Use the
+  ✎ button on a line to edit its amount/concentration (or label/volume).
+- **Presets** (nav link) - reusable sets of lines, e.g. a fixed base of
+  conversion-factor RNAs. Pick one when adding a mix, or use "Apply preset" on
+  an existing mix, and its lines are copied in. The copies are ordinary mix
+  lines, so editing them never changes the preset (and editing/deleting the
+  preset never changes existing mixes).
 - PhR and HEPES top-up rows are always computed live from the mix's other
   lines - they are never stored, so editing a mix's volume/PhR setting is
   always reflected correctly.

@@ -45,6 +45,14 @@
   <h2>Add mix</h2>
   <form class="row" method="post" action="/experiments/{{ experiment.id }}/mixes">
     <label>Label <input type="text" name="label" required placeholder="e.g. jan22a"></label>
+    {% if presets %}
+    <label>Start from preset
+      <select name="preset_id">
+        <option value="">(none)</option>
+        {% for p in presets %}<option value="{{ p.id }}">{{ p.name }} ({{ p.line_count }} lines)</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
     <button type="submit">Add mix</button>
   </form>
 </div>

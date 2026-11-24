@@ -23,6 +23,12 @@ class RenderedLine:
     review_note: str | None
     id: int | None = None
     construct_id: str | None = None
+    # Raw stored values, used to pre-fill the edit form (None for PhR/HEPES rows)
+    inject_amount: float | None = None
+    stock_conc: float | None = None
+    inject_volume: float | None = None
+    mix_volume_at_calc: float | None = None
+    manual_volume: float | None = None
 
 
 def line_label(row: sqlite3.Row) -> str:
@@ -108,6 +114,11 @@ def render_mix_rows(mix: sqlite3.Row, lines: list[sqlite3.Row]) -> list[Rendered
                 review_note=row["review_note"],
                 id=row["id"],
                 construct_id=construct_id,
+                inject_amount=row["inject_amount"],
+                stock_conc=row["stock_conc"],
+                inject_volume=row["inject_volume"],
+                mix_volume_at_calc=row["mix_volume_at_calc"],
+                manual_volume=row["manual_volume"],
             )
         )
     mix_vol = mix["mix_volume"]

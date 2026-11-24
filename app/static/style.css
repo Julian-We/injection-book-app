@@ -132,3 +132,8 @@ details summary {
   padding: 0.25rem 0; user-select: none;
 }
 details summary:hover { color: var(--fg); }
+
+td.actions { white-space: nowrap; text-align: right; }
+button.icon { padding: 0.2rem 0.55rem; }
+tr.edit-row td { background: var(--bg-alt); }
+tr.edit-row form.row { margin: 0; }

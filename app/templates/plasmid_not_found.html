@@ -3,9 +3,9 @@
 {% block content %}
 <h2>Construct "{{ construct_id }}" was not found</h2>
 <p>There is no plasmid with this construct ID in the database yet. Add it below to continue -
-the pending mix line will be created automatically once the plasmid is saved.</p>
+the pending {{ target_label }} will be created automatically once the plasmid is saved.</p>
 
-<form method="post" action="/mixes/{{ mix_id }}/lines/confirm_new_plasmid">
+<form method="post" action="{{ form_action }}">
   <input type="hidden" name="construct_id" value="{{ construct_id }}">
   <input type="hidden" name="inject_amount" value="{{ inject_amount }}">
   <input type="hidden" name="stock_conc" value="{{ stock_conc }}">
@@ -17,5 +17,5 @@ the pending mix line will be created automatically once the plasmid is saved.</p
   <p><label>Enzyme<br><input type="text" name="enzyme" style="width:100%"></label></p>
   <button type="submit">Save plasmid &amp; add line</button>
 </form>
-<p><a href="/experiments/{{ experiment_id }}">Cancel</a></p>
+<p><a href="{{ cancel_url }}">Cancel</a></p>
 {% endblock %}

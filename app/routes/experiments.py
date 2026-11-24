@@ -9,6 +9,7 @@ from urllib.parse import quote
 from ..db import get_db
 from ..templating import templates
 from .. import calc, backup
+from .presets import list_presets
 
 router = APIRouter()
 
@@ -98,7 +99,8 @@ def experiment_detail(request: Request, experiment_id: int, conn: sqlite3.Connec
         return RedirectResponse(url="/experiments", status_code=303)
     return templates.TemplateResponse(
         "experiment_detail.html",
-        {"request": request, "experiment": experiment, "mix_cards": mix_cards},
+        {"request": request, "experiment": experiment, "mix_cards": mix_cards,
+         "presets": list_presets(conn)},
     )
 
 

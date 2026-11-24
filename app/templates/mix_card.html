@@ -1,3 +1,4 @@
+{% from "_line_forms.html" import edit_button, edit_row, add_line_forms %}
 <div class="card">
   <h2>{{ mix.label }}
     <span class="muted">(mix volume {{ mix.mix_volume }} µL{% if mix.phr_enabled %}, PhR on{% endif %})</span>
@@ -12,41 +13,31 @@
       <td>{{ "%.2f"|format(r.conc_ng_per_ul) if r.conc_ng_per_ul is not none else "-" }}</td>
       <td>{{ r.volume_ul }}</td>
       <td>{{ r.amount_pg }}</td>
-      <td>
+      <td class="actions">
         {% if r.id %}
+        {{ edit_button() }}
         <form class="inline" method="post" action="/mix_lines/{{ r.id }}/delete">
-          <button type="submit" class="danger" onclick="return confirm('Remove this line?')">×</button>
+          <button type="submit" class="danger icon" title="Remove this line" onclick="return confirm('Remove this line?')">×</button>
         </form>
         {% endif %}
       </td>
     </tr>
+    {% if r.id %}{{ edit_row(r, r.label, "/mix_lines/" ~ r.id ~ "/edit", 6) }}{% endif %}
     {% endfor %}
   </table>
 
-  <h3>Add construct (plasmid) line</h3>
-  <form class="row" method="post" action="/mixes/{{ mix.id }}/lines">
-    <input type="hidden" name="kind" value="plasmid">
-    <label>Construct ID <input type="text" name="construct_id" required placeholder="e.g. F126"></label>
-    <label>Amount [pg] <input type="number" step="any" name="inject_amount" required></label>
-    <label>Stock conc [ng/µL] <input type="number" step="any" name="stock_conc" value="500" required></label>
-    <details>
-      <summary>Advanced (inject/mix volume)</summary>
-      <label>Inject vol [nL] <input type="number" step="any" name="inject_volume" value="2"></label>
-      <label>Mix vol [µL] <input type="number" step="any" name="mix_volume_at_calc" value="3"></label>
-    </details>
-    <button type="submit">Add</button>
+  {% if presets %}
+  <form class="row" method="post" action="/mixes/{{ mix.id }}/apply_preset">
+    <label>Add lines from preset
+      <select name="preset_id" required>
+        {% for p in presets %}<option value="{{ p.id }}">{{ p.name }} ({{ p.line_count }} lines)</option>{% endfor %}
+      </select>
+    </label>
+    <button type="submit" class="secondary">Apply preset</button>
   </form>
-  <p class="muted">The construct name is looked up automatically from the plasmid database by ID.</p>
+  {% endif %}
 
-  <details>
-    <summary>Add morpholino / reagent line (manual volume)</summary>
-    <form class="row" method="post" action="/mixes/{{ mix.id }}/lines">
-      <input type="hidden" name="kind" value="reagent">
-      <label>Label <input type="text" name="display_text" required placeholder="e.g. Tdrd7a MO #27"></label>
-      <label>Volume [µL] <input type="number" step="any" name="manual_volume" required></label>
-      <button type="submit">Add</button>
-    </form>
-  </details>
+  {{ add_line_forms("/mixes/" ~ mix.id ~ "/lines") }}
 
   <details>
     <summary>Mix settings</summary>
