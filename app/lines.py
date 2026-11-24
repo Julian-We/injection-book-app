@@ -74,17 +74,54 @@ def update_line(
         )
 
 
+def _append_lines_to_mix(conn: sqlite3.Connection, source_lines, mix_id: int) -> int:
+    """Append copies of the given line rows (values only, no review flags) to a mix."""
+    start = next_ordering(conn, "mix_lines", mix_id)
+    cols = ", ".join(COPY_COLUMNS)
+    placeholders = ", ".join("?" for _ in COPY_COLUMNS)
+    for i, line in enumerate(source_lines):
+        conn.execute(
+            f"INSERT INTO mix_lines (mix_id, ordering, {cols}) VALUES (?, ?, {placeholders})",
+            (mix_id, start + i, *(line[c] for c in COPY_COLUMNS)),
+        )
+    return len(source_lines)
+
+
 def copy_preset_into_mix(conn: sqlite3.Connection, preset_id: int, mix_id: int) -> int:
     """Append all of a preset's lines to a mix, as independent copies. Returns the count."""
     preset_lines = conn.execute(
         "SELECT * FROM preset_lines WHERE preset_id = ? ORDER BY ordering", (preset_id,)
     ).fetchall()
-    start = next_ordering(conn, "mix_lines", mix_id)
-    cols = ", ".join(COPY_COLUMNS)
-    placeholders = ", ".join("?" for _ in COPY_COLUMNS)
-    for i, line in enumerate(preset_lines):
-        conn.execute(
-            f"INSERT INTO mix_lines (mix_id, ordering, {cols}) VALUES (?, ?, {placeholders})",
-            (mix_id, start + i, *(line[c] for c in COPY_COLUMNS)),
-        )
-    return len(preset_lines)
+    return _append_lines_to_mix(conn, preset_lines, mix_id)
+
+
+def copy_mix_lines(conn: sqlite3.Connection, src_mix_id: int, dst_mix_id: int) -> int:
+    """Append copies of all of one mix's lines to another mix. Returns the count."""
+    src_lines = conn.execute(
+        "SELECT * FROM mix_lines WHERE mix_id = ? ORDER BY ordering", (src_mix_id,)
+    ).fetchall()
+    return _append_lines_to_mix(conn, src_lines, dst_mix_id)
+
+
+def suggest_duplicate_label(label: str, existing_labels) -> str:
+    """Suggest a label for a copy of a mix: the next free letter (jan22a -> jan22b),
+    or '<label> copy' (numbered if needed) otherwise. The letter is only bumped when
+    it's a single trailing letter after a digit (or the whole label), like 'jan22a'."""
+    taken = {l.lower() for l in existing_labels}
+    label = label.strip()
+    letter_suffix = (
+        len(label) >= 1 and label[-1].isascii() and label[-1].isalpha()
+        and (len(label) == 1 or label[-2].isdigit())
+    )
+    if letter_suffix and label[-1].lower() < "z":
+        base, last = label[:-1], label[-1]
+        for code in range(ord(last.lower()) + 1, ord("z") + 1):
+            ch = chr(code).upper() if last.isupper() else chr(code)
+            if (base + ch).lower() not in taken:
+                return base + ch
+    candidate = f"{label} copy"
+    n = 2
+    while candidate.lower() in taken:
+        candidate = f"{label} copy {n}"
+        n += 1
+    return candidate

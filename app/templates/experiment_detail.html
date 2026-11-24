@@ -37,7 +37,7 @@
   <button type="submit" class="danger">Delete experiment</button>
 </form>
 
-{% for mix, rows in mix_cards %}
+{% for mix, rows, suggested_label in mix_cards %}
   {% include "mix_card.html" %}
 {% endfor %}
 

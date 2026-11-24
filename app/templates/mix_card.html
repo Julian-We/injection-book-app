@@ -1,5 +1,5 @@
 {% from "_line_forms.html" import edit_button, edit_row, add_line_forms %}
-<div class="card">
+<div class="card" id="mix-{{ mix.id }}">
   <h2>{{ mix.label }}
     <span class="muted">(mix volume {{ mix.mix_volume }} µL{% if mix.phr_enabled %}, PhR {{ "%g"|format((mix.phr_volume if mix.phr_volume is not none else mix.mix_volume * 0.1)|round(3)) }} µL{% endif %})</span>
   </h2>
@@ -36,6 +36,11 @@
     <button type="submit" class="secondary">Apply preset</button>
   </form>
   {% endif %}
+
+  <form class="row" method="post" action="/mixes/{{ mix.id }}/duplicate">
+    <label>Duplicate as <input type="text" name="label" value="{{ suggested_label }}" required></label>
+    <button type="submit" class="secondary">Duplicate mix</button>
+  </form>
 
   {{ add_line_forms("/mixes/" ~ mix.id ~ "/lines") }}
 

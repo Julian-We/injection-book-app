@@ -39,6 +39,9 @@ No authentication is included; the app binds to `0.0.0.0:8000` by design
   morpholino/reagent (free-text label + manual volume in µL).
   Construct IDs are matched case-insensitively (`f126` finds `F126`). Use the
   ✎ button on a line to edit its amount/concentration (or label/volume).
+- **Duplicate mix** on each mix card copies the mix (settings and all lines)
+  to the end of the same experiment, with the next free letter as its label
+  (e.g. `jan22a` -> `jan22b`). Then edit just the lines that differ.
 - **Presets** (nav link) - reusable sets of lines, e.g. a fixed base of
   conversion-factor RNAs. Pick one when adding a mix, or use "Apply preset" on
   an existing mix, and its lines are copied in. The copies are ordinary mix

@@ -63,6 +63,33 @@ def apply_preset(
     return RedirectResponse(url=f"/experiments/{experiment_id}", status_code=303)
 
 
+@router.post("/mixes/{mix_id}/duplicate")
+def duplicate_mix(
+    mix_id: int,
+    label: str = Form(""),
+    conn: sqlite3.Connection = Depends(get_db),
+):
+    src = conn.execute("SELECT * FROM mixes WHERE id = ?", (mix_id,)).fetchone()
+    experiment_id = src["experiment_id"]
+    label = label.strip()
+    if not label:
+        existing = [r["label"] for r in conn.execute(
+            "SELECT label FROM mixes WHERE experiment_id = ?", (experiment_id,))]
+        label = lines.suggest_duplicate_label(src["label"], existing)
+    ordering = conn.execute(
+        "SELECT COALESCE(MAX(ordering) + 1, 0) FROM mixes WHERE experiment_id = ?", (experiment_id,)
+    ).fetchone()[0]
+    cur = conn.execute(
+        """INSERT INTO mixes (experiment_id, label, mix_volume, phr_enabled, phr_volume, ordering)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (experiment_id, label, src["mix_volume"], src["phr_enabled"], src["phr_volume"], ordering),
+    )
+    new_id = cur.lastrowid
+    lines.copy_mix_lines(conn, mix_id, new_id)
+    conn.commit()
+    return RedirectResponse(url=f"/experiments/{experiment_id}#mix-{new_id}", status_code=303)
+
+
 @router.post("/mixes/{mix_id}/lines")
 def add_line(
     request: Request,

@@ -8,7 +8,7 @@ from urllib.parse import quote
 
 from ..db import get_db
 from ..templating import templates
-from .. import calc, backup
+from .. import calc, backup, lines as line_utils
 from .presets import list_presets
 
 router = APIRouter()
@@ -79,6 +79,7 @@ def _load_experiment_detail(conn: sqlite3.Connection, experiment_id: int):
         "SELECT * FROM mixes WHERE experiment_id = ? ORDER BY ordering", (experiment_id,)
     ).fetchall()
     mix_cards = []
+    labels = [m["label"] for m in mixes]
     for mix in mixes:
         lines = conn.execute(
             """SELECT ml.*, p.name AS plasmid_name, p.construct_id AS plasmid_construct_id,
@@ -88,7 +89,8 @@ def _load_experiment_detail(conn: sqlite3.Connection, experiment_id: int):
                WHERE ml.mix_id = ? ORDER BY ml.ordering""",
             (mix["id"],),
         ).fetchall()
-        mix_cards.append((mix, calc.render_mix_rows(mix, lines)))
+        suggested = line_utils.suggest_duplicate_label(mix["label"], labels)
+        mix_cards.append((mix, calc.render_mix_rows(mix, lines), suggested))
     return experiment, mix_cards
 
 

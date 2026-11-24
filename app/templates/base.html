@@ -41,6 +41,10 @@
           if (Date.now() - saved.time > 60000) sessionStorage.removeItem(KEY);
           saved = null;
         }
+        if (saved && location.hash) {  // an #anchor jump wins
+          sessionStorage.removeItem(KEY);
+          saved = null;
+        }
         if (saved) {
           sessionStorage.removeItem(KEY);
           window.scrollTo(0, saved.y);
