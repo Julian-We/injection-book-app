@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    environment:
+      - DATABASE_PATH=/data/injection.db
+      - BACKUP_DIR=/backup
+      - GITHUB_BACKUP_REPO=${GITHUB_BACKUP_REPO:-}
+      - GITHUB_BACKUP_TOKEN=${GITHUB_BACKUP_TOKEN:-}
+      - GITHUB_BACKUP_BRANCH=${GITHUB_BACKUP_BRANCH:-main}
+    volumes:
+      - injection_data:/data
+      - backup_repo:/backup
+    restart: unless-stopped
+
+volumes:
+  injection_data:
+  backup_repo:

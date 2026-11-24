@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Experiments{% endblock %}
+{% block content %}
+<form class="row" method="get" action="/experiments">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by date, title, construct ID or name...">
+  <button type="submit">Search</button>
+  {% if q %}<a href="/experiments">Clear</a>{% endif %}
+</form>
+
+<table>
+  <tr><th>Date</th><th>Slug / Filename</th><th>Title</th><th>Source</th><th></th><th></th></tr>
+  {% for e in experiments %}
+  <tr>
+    <td>{{ e.experiment_date or "—" }}</td>
+    <td><a href="/experiments/{{ e.id }}">{{ e.slug }}</a></td>
+    <td>{{ e.title or "" }}{% if e.closed_at %} <span class="pill">closed</span>{% endif %}</td>
+    <td class="muted">{{ e.source }}</td>
+    <td><a href="/experiments/{{ e.id }}/export.md">export .md</a></td>
+    <td>
+      <form class="inline" method="post" action="/experiments/{{ e.id }}/delete"
+            onsubmit="return confirm('Delete this whole experiment, including all its mixes and lines?')">
+        <button type="submit" class="danger">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% if not experiments %}<p class="muted">No experiments found.</p>{% endif %}
+{% endblock %}

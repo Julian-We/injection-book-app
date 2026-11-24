@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ experiment.slug }}{% endblock %}
+{% block content %}
+<p><a href="/experiments">&larr; all experiments</a></p>
+<h2>{{ experiment.slug }} <span class="muted">({{ experiment.experiment_date or "no date" }})</span>
+  {% if experiment.closed_at %}<span class="pill">Closed {{ experiment.closed_at }}</span>{% endif %}
+</h2>
+{% if request.query_params.get("backup_msg") %}
+<div class="{{ 'muted' if request.query_params.get('backup_ok') == '1' else 'flag' }}">
+  Backup: {{ request.query_params.get("backup_msg") }}
+</div>
+{% endif %}
+{% if experiment.title %}<p>{{ experiment.title }}</p>{% endif %}
+<p class="muted">
+  Group: {{ experiment.experiment_group or "—" }} ·
+  Repetition: {{ experiment.repetition or "—" }} ·
+  Injection stage: {{ experiment.injection_stage or "—" }} ·
+  Incubation: {{ experiment.incubation_at or "—" }} ·
+  Source: {{ experiment.source }}
+</p>
+{% if experiment.migration_note %}<div class="flag">{{ experiment.migration_note }}</div>{% endif %}
+<p>
+  <a class="button" href="/experiments/{{ experiment.id }}/edit">Edit details</a>
+  <a class="button" href="/experiments/{{ experiment.id }}/export.md">Export as Markdown</a>
+  {% if experiment.closed_at %}
+  <form class="inline" method="post" action="/experiments/{{ experiment.id }}/reopen">
+    <button type="submit" class="secondary">Reopen experiment</button>
+  </form>
+  {% else %}
+  <form class="inline" method="post" action="/experiments/{{ experiment.id }}/close">
+    <button type="submit" class="secondary">Close experiment (backs up to GitHub)</button>
+  </form>
+  {% endif %}
+</p>
+<form method="post" action="/experiments/{{ experiment.id }}/delete"
+      onsubmit="return confirm('Delete this whole experiment, including all its mixes and lines?')">
+  <button type="submit" class="danger">Delete experiment</button>
+</form>
+
+{% for mix, rows in mix_cards %}
+  {% include "mix_card.html" %}
+{% endfor %}
+
+<div class="card">
+  <h2>Add mix</h2>
+  <form class="row" method="post" action="/experiments/{{ experiment.id }}/mixes">
+    <label>Label <input type="text" name="label" required placeholder="e.g. jan22a"></label>
+    <button type="submit">Add mix</button>
+  </form>
+</div>
+{% endblock %}

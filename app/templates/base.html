@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Injection Recipes{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>
+      <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.6">
+          <ellipse cx="12" cy="12" rx="10" ry="4.2"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(60 12 12)"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(120 12 12)"/>
+        </g>
+        <circle cx="12" cy="12" r="2.6" fill="currentColor"/>
+      </svg>
+      Injection Recipes
+    </h1>
+    <nav>
+      <a href="/experiments">Experiments</a>
+      <a href="/experiments/new">New experiment</a>
+      <a href="/plasmids/flagged">Flagged plasmids</a>
+    </nav>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

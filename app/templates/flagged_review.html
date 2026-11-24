@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Flagged for review{% endblock %}
+{% block content %}
+<h2>Flagged plasmids ({{ plasmids|length }})</h2>
+<p class="muted">Rows imported from plasmid_db.csv (or added later) with an unresolved data-quality note.</p>
+<table>
+  <tr><th>Construct ID</th><th>Raw ID (original)</th><th>Name</th><th>Note</th><th></th></tr>
+  {% for p in plasmids %}
+  <tr class="flag">
+    <td>{{ p.construct_id }}</td>
+    <td class="muted">{{ p.raw_id_original }}</td>
+    <td>{{ p.name }}</td>
+    <td>{{ p.review_note }}</td>
+    <td>
+      <form method="post" action="/plasmids/{{ p.id }}/clear_review">
+        <button type="submit">Mark reviewed</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Flagged recipe lines ({{ lines|length }})</h2>
+<p class="muted">Lines migrated from the notebook with a known quirk (e.g. a name mismatch, or an explicit non-default parameter).</p>
+<table>
+  <tr><th>Experiment</th><th>Mix</th><th>Line</th><th>Note</th><th></th></tr>
+  {% for l in lines %}
+  <tr class="flag">
+    <td><a href="/experiments/{{ l.experiment_id }}">{{ l.experiment_slug }}</a></td>
+    <td>{{ l.mix_label }}</td>
+    <td>{{ l.display_name_override or l.plasmid_id }}</td>
+    <td>{{ l.review_note }}</td>
+    <td>
+      <form method="post" action="/mix_lines/{{ l.id }}/clear_review">
+        <button type="submit">Mark reviewed</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
